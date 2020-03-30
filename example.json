@@ -1,0 +1,36 @@
+{
+   "wiki" : "enwiki",
+   "user" : "183.83.144.239",
+   "type" : "edit",
+   "length" : {
+      "old" : 116227,
+      "new" : 116227
+   },
+   "server_url" : "https://en.wikipedia.org",
+   "revision" : {
+      "old" : 948056168,
+      "new" : 948056227
+   },
+   "id" : 1245279335,
+   "bot" : false,
+   "comment" : "/* Passenger */",
+   "title" : "Chennai International Airport",
+   "meta" : {
+      "offset" : 2281636878,
+      "id" : "e37fd191-07c4-45ec-8b1d-1701344bef32",
+      "stream" : "mediawiki.recentchange",
+      "dt" : "2020-03-29T22:38:20Z",
+      "uri" : "https://en.wikipedia.org/wiki/Chennai_International_Airport",
+      "topic" : "eqiad.mediawiki.recentchange",
+      "partition" : 0,
+      "request_id" : "XoEjWQpAADgAAHZLIEsAAAAK",
+      "domain" : "en.wikipedia.org"
+   },
+   "timestamp" : 1585521500,
+   "$schema" : "/mediawiki/recentchange/1.0.0",
+   "server_script_path" : "/w",
+   "parsedcomment" : "<span dir=\"auto\"><span class=\"autocomment\"><a href=\"/wiki/Chennai_International_Airport#Passenger\" title=\"Chennai International Airport\">→‎Passenger</a></span></span>",
+   "server_name" : "en.wikipedia.org",
+   "minor" : false,
+   "namespace" : 0
+}

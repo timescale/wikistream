@@ -1,0 +1,9 @@
+README.rst
+setup.py
+wikistream/__init__.py
+wikistream/__main__.py
+wikistream.egg-info/PKG-INFO
+wikistream.egg-info/SOURCES.txt
+wikistream.egg-info/dependency_links.txt
+wikistream.egg-info/requires.txt
+wikistream.egg-info/top_level.txt
