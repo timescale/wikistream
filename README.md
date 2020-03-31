@@ -5,6 +5,8 @@ A Python package that uses [`aiosseclient`](https://github.com/ebraminio/aiossec
 This package assumes that you're accessing a PostgreSQL database on your local
 machine that already has the TimescaleDB extension installed and enabled. [TimescaleDB Docker Image](https://hub.docker.com/r/timescale/timescaledb/)
 
+If you're looking for some one stop shopping you can use [`timescale/wikistream-docker`](https://github.com/timescale/wikistream) to spin up TimescaleDB, Grafana and Wikistream all at once.
+
 It also assumes that said database has a user `postgres` with a password of `password`. If you're using the aforementioned Docker image to setup TimescaleDB you can set the password with an environment variable:
 
 ```
@@ -98,6 +100,11 @@ config = {
 }
 ```
 
+## Contributing
+
+Pull requests will be merged liberally, please feel free to tidy things up and/or contribute additional features.
+
 ## License
 MIT
+
 Copyright (c) 2020 Jonan Scheffler ([LICENSE](https://github.com/timescale/wikistream/LICENSE.md))
