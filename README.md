@@ -24,7 +24,8 @@ perhaps you will find something useful.
 Create a Wikistream:
 
 ```python
-ws = Wikistream()
+import wikistream
+ws = wikistream.Client()
 
 # default config:
 # host: localhost
