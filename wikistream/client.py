@@ -35,12 +35,16 @@ class Client:
         self.log("info", f"Connected to {self.database_url}")
         self.log("info", f"Streaming from {self.wikimedia_url}...")
 
+        try:
+            self.create_table()
+        except:
+            self.log("error", f"Unexpected error attempting to create table '{self.config['table']}'. Retrying in {duration} seconds... ({attempt}/{len(self.config['retries'])})")
+
         while True:
             for attempt, duration in enumerate(self.config["retries"]):
                 attempt_time = time.time()
 
                 try:
-                    self.create_table()
                     self.log("debug", f"Starting the run loop... {attempt}/{len(self.config['retries'])}")
                     self.run_loop()
                 except asyncio.TimeoutError:
