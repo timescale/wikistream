@@ -128,7 +128,6 @@ class Client:
             except sqlalchemy.exc.DatabaseError as error:
                 if "already a hypertable" not in str(error):
                     self.log("error", f"Error attempting to convert '{table}' into a hypertable.", { "error": str(error), "db": self.safe_database_url })
-                    raise error
                 else:
                     self.log("debug", f"Table '{table}' is already a hypertable.", { "db": self.safe_database_url })
             try:
@@ -136,7 +135,6 @@ class Client:
             except sqlalchemy.exc.NotSupportedError as error:
                 if "compressed chunks already exist" not in str(error):
                     self.log("error", f"Error attempting to alter hypertable '{table}' for compression.", { "error": str(error), "db": self.safe_database_url })
-                    raise error
                 else:
                     self.log("debug", f"Table '{table}' already contains compressed chunks so it could not be altered for compression.")
             try:
@@ -144,7 +142,6 @@ class Client:
             except sqlalchemy.exc.ProgrammingError as error:
                 if "compress chunks policy already exists" not in str(error):
                     self.log("error", f"Error attempting to create a compress chunks policy for '{table}' for compression.", { "error": str(error), "db": self.safe_database_url })
-                    raise error
                 else:
                     self.log("debug", f"Table {table} already has a compress chunks policy.", { "db": self.safe_database_url })
 
