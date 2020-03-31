@@ -61,6 +61,9 @@ class Client:
                         break
                     else:
                         self.log("debug", f"Retrying after {error_time - attempt_time} seconds...")
+                except:
+                    self.log("error", f"Unexpected error attempting to stream from '{self.wikimedia_url}'. Retrying in {duration} seconds... ({attempt}/{len(self.config['retries'])})")
+
             else:
                 self.log("fatal", f"Failed permanently after {len(self.config['retries'])} attempts to stream from '{self.wikimedia_url}'.")
                 break
