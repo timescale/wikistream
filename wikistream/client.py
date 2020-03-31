@@ -3,6 +3,7 @@ import aiohttp
 import sqlalchemy
 
 import re
+import sys
 import json
 import time
 import datetime
@@ -38,7 +39,12 @@ class Client:
         try:
             self.create_table()
         except:
-            self.log("error", f"Unexpected error attempting to create table '{self.config['table']}'. Retrying in {duration} seconds... ({attempt}/{len(self.config['retries'])})")
+            # This is probably a bad practice but there doesn't seem to be a requirement that exceptions inherit from Exception
+            # so there's no other way to log and continue past unexpected exceptions. We definitely don't want to crash just
+            # because we failed to anticipate the exact error raised while creating the table; it's most likely an error related
+            # to the fact that the table has already been created. In that case proceeding will very likely succeed.
+            error_info = sys.exc_info()
+            self.log("error", f"Proceeding after unexpected error attempting to create table '{self.config['table']}'.", { "error": str(error_info) })
 
         while True:
             for attempt, duration in enumerate(self.config["retries"]):

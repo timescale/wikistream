@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "wikistream"
-version = "0.1.6"
+version = "0.1.7"
 description = "A Python package that uses aiosseclient to stream edits from Wikimedia properties around the world and store them in TimescaleDB."
 authors = ["Jonan Scheffler <jonanscheffler@gmail.com>"]
 
