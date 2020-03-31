@@ -1,6 +1,6 @@
 # Wikistream
 
-A Python package that uses [`aiosseclient`](https://github.com/ebraminio/aiosseclient) to stream edits to Wikimedia properties around the world and store them in [TimescaleDB](https://timescale.com).
+A Python package that uses [`aiosseclient`](https://github.com/ebraminio/aiosseclient) from stream edits to Wikimedia properties around the world and store them in [TimescaleDB](https://timescale.com).
 
 This package assumes that you're accessing a PostgreSQL database on your local
 machine that already has the TimescaleDB extension installed and enabled. [TimescaleDB Docker Image](https://hub.docker.com/r/timescale/timescaledb/)
