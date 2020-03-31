@@ -18,22 +18,6 @@ speedups = ["aiodns", "brotlipy", "cchardet"]
 
 [[package]]
 category = "main"
-description = "Asynchronous Server Sent Event strems client."
-name = "aiosseclient"
-optional = false
-python-versions = "*"
-version = "0.0.1"
-
-[package.dependencies]
-aiohttp = "*"
-
-[package.source]
-reference = "4d743c046919f4c9ab74ffea201515155ad26a63"
-type = "git"
-url = "https://github.com/ebraminio/aiosseclient"
-
-[[package]]
-category = "main"
 description = "Timeout context manager for asyncio programs"
 name = "async-timeout"
 optional = false
@@ -266,7 +250,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "beb9202dbc072301fa10340d6f42a048c28b71d49f5d8d87091f44677d0f0996"
+content-hash = "3bf36c753fd181e48248e9840669cccef088ecc8fc19c744ead87d3195abf2d2"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -284,7 +268,6 @@ aiohttp = [
     {file = "aiohttp-3.6.2-py3-none-any.whl", hash = "sha256:460bd4237d2dbecc3b5ed57e122992f60188afe46e7319116da5eb8a9dfedba4"},
     {file = "aiohttp-3.6.2.tar.gz", hash = "sha256:259ab809ff0727d0e834ac5e8a283dc5e3e0ecc30c4d80b3cd17a4139ce1f326"},
 ]
-aiosseclient = []
 async-timeout = [
     {file = "async-timeout-3.0.1.tar.gz", hash = "sha256:0c3c816a028d47f659d6ff5c745cb2acf1f966da1fe5c19c77a70282b25f4c5f"},
     {file = "async_timeout-3.0.1-py3-none-any.whl", hash = "sha256:4291ca197d287d274d0b6cb5d6f8f8f82d434ed288f962539ff18cc9012f9ea3"},

@@ -1,6 +1,5 @@
 import asyncio
 import aiohttp
-from aiosseclient import aiosseclient
 import sqlalchemy
 
 import re
@@ -41,17 +40,17 @@ class Wikistream:
             for attempt, duration in enumerate(self.config["retries"]):
                 attempt_time = time.time()
                 try:
-                    self.log("info", f"Starting the run loop... {attempt}/{len(self.config['retries'])}")
+                    self.log("debug", f"Starting the run loop... {attempt}/{len(self.config['retries'])}")
                     self.run_loop()
                 except asyncio.TimeoutError:
                     self.log("warn", f"Timed out attempting to stream from '{self.wikimedia_url}'. Retrying in {duration} seconds... ({attempt}/{len(self.config['retries'])})")
                     time.sleep(duration)
                     error_time = time.time()
                     if ((error_time - attempt_time) > max(self.config["retries"]) + 1):
-                        self.log("info", f"Resetting retry counter after {error_time - attempt_time} seconds.")
+                        self.log("debug", f"Resetting retry counter after {error_time - attempt_time} seconds.")
                         break
                     else:
-                        self.log("info", f"Retrying after {error_time - attempt_time} seconds...")
+                        self.log("debug", f"Retrying after {error_time - attempt_time} seconds...")
             else:
                 self.log("fatal", f"Timed out {len(self.config['retries'])} times trying to stream from '{self.wikimedia_url}'.")
                 break
@@ -61,8 +60,37 @@ class Wikistream:
         loop.run_until_complete(self.stream())
 
     async def stream(self):
-        async for event in aiosseclient(self.wikimedia_url):
+        async for event in self.aiosseclient(self.wikimedia_url):
             self.save(event)
+
+    async def aiosseclient(self, url, last_id=None, **kwargs):
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+
+        # The SSE spec requires making requests with Cache-Control: nocache
+        kwargs['headers']['Cache-Control'] = 'no-cache'
+
+        # The 'Accept' header is not required, but explicit > implicit
+        kwargs['headers']['Accept'] = 'text/event-stream'
+        
+        if last_id:
+            kwargs['headers']['Last-Event-ID'] = last_id
+        
+        async with aiohttp.ClientSession() as session:
+            response = await session.get(url, **kwargs)
+            lines = []
+            async for line in response.content:
+                line = line.decode('utf8')
+
+                if line == '\n' or line == '\r' or line == '\r\n':
+                    if lines[0] == ':ok\n':
+                        lines = []
+                        continue
+
+                    yield Event.parse(''.join(lines))
+                    lines = []
+                else:
+                    lines.append(line)
 
     def create_table(self):
         metadata = sqlalchemy.MetaData()
@@ -135,15 +163,66 @@ class Wikistream:
             log_info.update(data)
             print(json.loads(json.dumps(log_info)))
 
-dbconfig = {
-    "host": "localhost",
-    "port": 5432,
-    "user": "postgres",
-    "password": "password",
-    "dbname": "wikistream",
-    "table": "events",
-    "batch": 50
-}
+class Event(object):
 
-ws = Wikistream(dbconfig)
-ws.start()
+    sse_line_pattern = re.compile('(?P<name>[^:]*):?( ?(?P<value>.*))?')
+
+    def __init__(self, data='', event='message', id=None, retry=None):
+        self.data = data
+        self.event = event
+        self.id = id
+        self.retry = retry
+
+    def dump(self):
+        lines = []
+        if self.id:
+            lines.append('id: %s' % self.id)
+
+        # Only include an event line if it's not the default already.
+        if self.event != 'message':
+            lines.append('event: %s' % self.event)
+
+        if self.retry:
+            lines.append('retry: %s' % self.retry)
+
+        lines.extend('data: %s' % d for d in self.data.split('\n'))
+        return '\n'.join(lines) + '\n\n'
+
+    @classmethod
+    def parse(cls, raw):
+        """
+        Given a possibly-multiline string representing an SSE message, parse it
+        and return a Event object.
+        """
+        msg = cls()
+        for line in raw.splitlines():
+            m = cls.sse_line_pattern.match(line)
+            if m is None:
+                # Malformed line.  Discard but warn.
+                warnings.warn('Invalid SSE line: "%s"' % line, SyntaxWarning)
+                continue
+
+            name = m.group('name')
+            if name == '':
+                # line began with a ":", so is a comment.  Ignore
+                continue
+            value = m.group('value')
+
+            if name == 'data':
+                # If we already have some data, then join to it with a newline.
+                # Else this is it.
+                if msg.data:
+                    msg.data = '%s\n%s' % (msg.data, value)
+                else:
+                    msg.data = value
+            elif name == 'event':
+                msg.event = value
+            elif name == 'id':
+                msg.id = value
+            elif name == 'retry':
+                msg.retry = int(value)
+
+        return msg
+
+    def __str__(self):
+        return self.data
