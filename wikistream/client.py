@@ -1,11 +1,13 @@
 import asyncio
 import aiohttp
 import sqlalchemy
+from sqlalchemy_utils import database_exists, create_database
 
 import re
 import sys
 import json
 import time
+import atexit
 import datetime
 from datetime import datetime, timezone
 
@@ -26,17 +28,22 @@ class Client:
         self.log_levels = ["debug", "info", "warn", "error", "fatal"]
         self.wikimedia_url = "https://stream.wikimedia.org/v2/stream/recentchange"
         self.database_url = f"postgresql://{self.config['user']}:{self.config['password']}@{self.config['host']}:{self.config['port']}/{self.config['dbname']}"
-        self.safe_database_url = re.sub(self.config["password"], "********", self.database_url)
+        self.safe_database_url = f"postgresql://{self.config['user']}:********@{self.config['host']}:{self.config['port']}/{self.config['dbname']}"
         self.engine = sqlalchemy.create_engine(self.database_url, executemany_mode="batch")
 
         self.queued_events = []
         self.table = None
+        atexit.register(self.cleanup)
+
+    def cleanup(self):
+        self.engine.dispose()
 
     def start(self):
         self.log("info", f"Connected to {self.database_url}")
         self.log("info", f"Streaming from {self.wikimedia_url}...")
 
         try:
+            self.create_database()
             self.create_table()
         except:
             # This is probably a bad practice but there doesn't seem to be a requirement that exceptions inherit from Exception
@@ -95,10 +102,10 @@ class Client:
 
         # The 'Accept' header is not required, but explicit > implicit
         kwargs['headers']['Accept'] = 'text/event-stream'
-        
+
         if last_id:
             kwargs['headers']['Last-Event-ID'] = last_id
-        
+
         async with aiohttp.ClientSession() as session:
             response = await session.get(url, **kwargs)
             lines = []
@@ -114,6 +121,15 @@ class Client:
                     lines = []
                 else:
                     lines.append(line)
+
+    def create_database(self):
+        database_url = f"postgresql://{self.config['user']}:{self.config['password']}@{self.config['host']}:{self.config['port']}"
+        self.log("info", database_url)
+        engine = sqlalchemy.create_engine(database_url)
+        with engine.connect() as connection:
+            if not database_exists(self.database_url):
+                create_database(self.database_url)
+            self.log("info", f"Database {self.config['dbname']} already exists in {self.safe_database_url}.")
 
     def create_table(self):
         metadata = sqlalchemy.MetaData()
