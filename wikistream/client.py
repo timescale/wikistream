@@ -1,6 +1,7 @@
 import asyncio
 import aiohttp
 import sqlalchemy
+from datetime import datetime
 from sqlalchemy_utils import database_exists, create_database
 
 import re
@@ -135,10 +136,9 @@ class Client:
         metadata = sqlalchemy.MetaData()
         self.table = sqlalchemy.Table(self.config["table"], metadata,
             sqlalchemy.Column("time", sqlalchemy.DateTime, nullable=False),
-            sqlalchemy.Column("wiki_user", sqlalchemy.Text, nullable=False),
-            sqlalchemy.Column("comment_length", sqlalchemy.Integer, nullable=False),
+            sqlalchemy.Column("comment_length_difference", sqlalchemy.Integer, nullable=False),
             sqlalchemy.Column("domain", sqlalchemy.Text, nullable=False),
-            sqlalchemy.Column("raw", sqlalchemy.dialects.postgresql.JSONB, nullable=False),
+            sqlalchemy.Column("event", sqlalchemy.dialects.postgresql.JSONB, nullable=False),
         )
         metadata.create_all(self.engine)
 
@@ -153,7 +153,7 @@ class Client:
                 else:
                     self.log("debug", f"Table '{table}' is already a hypertable.", { "db": self.safe_database_url })
             try:
-                connection.execute(f"ALTER TABLE {table} SET (timescaledb.compress, timescaledb.compress_segmentby = 'wiki_user');")
+                connection.execute(f"ALTER TABLE {table} SET (timescaledb.compress, timescaledb.compress_segmentby = 'domain');")
             except sqlalchemy.exc.NotSupportedError as error:
                 if "compressed chunks already exist" not in str(error):
                     self.log("error", f"Error attempting to alter hypertable '{table}' for compression.", { "error": str(error), "db": self.safe_database_url })
@@ -168,15 +168,19 @@ class Client:
                     self.log("debug", f"Table {table} already has a compress chunks policy.", { "db": self.safe_database_url })
 
     def save(self, event):
-        parsed = json.loads(str(event))
+        new_event = json.loads(str(event))
+
+        new_length = new_event.get("length", {}).get("new", 0)
+        old_length = new_event.get("length", {}).get("old", 0)
 
         new_event = {
-            "time": parsed["meta"]["dt"],
-            "wiki_user": parsed["user"],
-            "comment_length": len(parsed["comment"]),
-            "domain": parsed["meta"]["domain"],
-            "raw": str(event)
+            "time": str(datetime.utcnow().replace(tzinfo=pytz.utc)),
+            "comment_length_difference": new_length - old_length,
+            "domain": new_event["meta"]["domain"],
+            "event": new_event
         }
+
+        import pdb; pdb.set_trace()
 
         self.queued_events.append(new_event)
 
@@ -186,7 +190,7 @@ class Client:
                 connection.execute(self.table.insert(), self.queued_events)
                 self.queued_events = []
         else:
-            self.log("debug", f"Queueing event...", { "queued_event_count": len(self.queued_events), "event": parsed })
+            self.log("debug", f"Queueing event...", { "queued_event_count": len(self.queued_events), "event": new_event })
 
     def log(self, level, message, data={}):
         if self.log_levels.index(level) >= self.log_levels.index(self.config["log_level"]):
