@@ -174,7 +174,7 @@ class Client:
         old_length = new_event.get("length", {}).get("old", 0)
 
         new_event = {
-            "time": str(datetime.utcnow().replace(tzinfo=pytz.utc)),
+            "time": str(datetime.now(timezone.utc)),
             "comment_length_difference": new_length - old_length,
             "domain": new_event["meta"]["domain"],
             "event": new_event
