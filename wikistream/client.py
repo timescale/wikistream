@@ -180,8 +180,6 @@ class Client:
             "event": new_event
         }
 
-        import pdb; pdb.set_trace()
-
         self.queued_events.append(new_event)
 
         if (len(self.queued_events) > self.config["batch"]):
