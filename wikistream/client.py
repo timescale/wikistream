@@ -6,6 +6,7 @@ from sqlalchemy_utils import database_exists, create_database
 
 import re
 import sys
+import math
 import json
 import time
 import atexit
@@ -136,7 +137,7 @@ class Client:
         metadata = sqlalchemy.MetaData()
         self.table = sqlalchemy.Table(self.config["table"], metadata,
             sqlalchemy.Column("time", sqlalchemy.DateTime, nullable=False),
-            sqlalchemy.Column("comment_length_difference", sqlalchemy.Integer, nullable=False),
+            sqlalchemy.Column("comment_delta", sqlalchemy.Integer, nullable=False),
             sqlalchemy.Column("domain", sqlalchemy.Text, nullable=False),
             sqlalchemy.Column("event", sqlalchemy.dialects.postgresql.JSONB, nullable=False),
         )
@@ -175,7 +176,7 @@ class Client:
 
         new_event = {
             "time": str(datetime.now(timezone.utc)),
-            "comment_length_difference": new_length - old_length,
+            "comment_delta": math.fabs(new_length - old_length),
             "domain": new_event["meta"]["domain"],
             "event": new_event
         }
